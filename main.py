@@ -1,3 +1,5 @@
+import pickle
+
 import pandas as pd
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, f1_score
 from pandas.plotting import scatter_matrix
@@ -97,7 +99,7 @@ high_correlations = correlations[correlations.abs() > threshold]
 
 # Désormais, on sépare les données en 2 parties:
 # Une partie test: 25% des données de test dans ce cas-ci
-# Une partie entraîneemnt: 75% des données de test
+# Une partie entraîneement: 75% des données de test
 X = data
 y = outcome
 
@@ -167,7 +169,19 @@ print("Recal score (KNN):", recall_score(y_test, y_pred_knn))
 print("\n")
 
 # On calcule le F1 score de chaque modèle
+# Le F1 score est une mesure qui combine la précision et le rappel pour évaluer les performances d'un modèle de classification.
+# Il donne une mesure équilibrée des résultats en tenant compte des faux positifs et des faux négatifs.
+#
 print("F1 Score (Logistic Regression):", f1_score(y_test, y_pred_logreg))
 print("F1 Score (Perceptron):", f1_score(y_test, y_pred_perceptron))
 print("F1 Score (KNN):", f1_score(y_test, y_pred_knn))
 
+# Sauvegarde des meilleurs modèles d'entraînements à l'aide de pickle
+pickle.dump(model_logreg, open('model_logreg.pkl', 'wb'))
+pickle.dump(model_perceptron, open('model_perceptron.pkl', 'wb'))
+pickle.dump(model_knn, open('model_knn.pkl', 'wb'))
+
+# On charge les meilleurs modèles d'entraînements à l'aide de pickle
+pickle.load(open('model_logreg.pkl', 'rb'))
+pickle.load(open('model_perceptron.pkl', 'rb'))
+pickle.load(open('model_knn.pkl', 'rb'))
