@@ -11,14 +11,15 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import train_test_split, KFold, cross_val_score
 
-# On importe les données du csv dans un tableau DataFrame
+# On importe les données du csv dans un tableau
 data = pd.read_csv("car_insurance.csv")
+print(data)
 
 # On affiche la taille du tableau, ici on a 10 000 lignes pour 18 colonnes
 print("Taille du tableau: ", data.shape)
 
 # On affiche le type de chaque données
-print("Type des données: ", data.dtypes)
+print("Type des données:\n", data.dtypes)
 
 # On affiche le nombres de valeurs manquantes par colonnes:
 print("Données manquantes:\n", data.isna().sum())
@@ -34,8 +35,8 @@ data['annual_mileage'].fillna(data['annual_mileage'].median(), inplace=True)
 print("Affichage des données manquantes après remplacement :\n", data.isna().sum())
 
 # On affiche les histogrammes des variables numériques
-#data.hist(bins=10, figsize=(20, 15))
-#plt.show()
+data.hist(bins=10, figsize=(20, 15))
+plt.show()
 
 # Remplacement des valeurs aberrantes par la médiane
 # On remplace les valeurs aberrantes supérieurs à 1 car cette data est un booléen, soit 0 (pas d'enfant) soit 1
@@ -74,28 +75,34 @@ data = data.drop(['outcome'], axis=1)
 # Normalisation des données
 scaler = StandardScaler()
 
+# On sauvegarde data avant de transformer toutes ses datas en float64
+old_data = data
+
 # On transforme toutes nos données en float64
 data = pd.DataFrame(scaler.fit_transform(data), columns=data.columns)
-print("Type des données:\n", data.dtypes)
+print("Type des données en float64:\n", data.dtypes)
 
 correlations = data.corr()
 print(correlations)
 
-# On définit notre seuil de corrélation à 0.7
-threshold = 0.7
+# On définit notre seuil de corrélation à 0.4
+threshold = 0.4
 
 # Filtrer la matrice de corrélation en fonction du seuil
 high_correlations = correlations[correlations.abs() > threshold]
 
-# Afficher la matrice de corrélation filtrée
-# plt.imshow(high_correlations, cmap='hot', interpolation='nearest')
-# plt.colorbar()
-# plt.xticks(range(len(high_correlations.columns)), high_correlations.columns, rotation='vertical')
-# plt.yticks(range(len(high_correlations.columns)), high_correlations.columns)
-# plt.title('Matrice de corrélation avec comme seuil 0.7')
-# plt.show()
+# On affiche la matrice de corrélation filtrée à l'aide de matplotlib
+plt.imshow(high_correlations, cmap='RdYlBu', interpolation='nearest')
+plt.colorbar()
+plt.xticks(range(len(high_correlations.columns)), high_correlations.columns, rotation='vertical')
+plt.yticks(range(len(high_correlations.columns)), high_correlations.columns)
+plt.title('Matrice de corrélation avec comme seuil 0.4')
+plt.show()
+# On constate une corrélation entre 'age' et 'driving_experience'
 
-# On constate que la corrélation est entre 'age' et 'driving_experience'
+var_cor = old_data[['age', 'driving_experience', 'vehicle_ownership', 'speeding_violations', 'vehicle_year', 'credit_score', 'past_accidents']]
+pd.plotting.scatter_matrix(var_cor, figsize=(10, 10))
+plt.show()
 
 # Désormais, on sépare les données en 2 parties:
 # Une partie test: 25% des données de test dans ce cas-ci
@@ -115,11 +122,13 @@ model_logreg.fit(X_train, y_train)
 model_perceptron.fit(X_train, y_train)
 model_knn.fit(X_train, y_train)
 
+# On créé une instante de Kfold avec 5 splits
+kfold = KFold(n_splits=5, shuffle=True, random_state=0)
+
 # On effectue une cross validation et on calcule les scores
-cv = 5
-scores_model_logreg = cross_val_score(model_logreg, X_train, y_train, cv=cv)
-scores_model_perceptron = cross_val_score(model_perceptron, X_train, y_train, cv=cv)
-scores_model_knn = cross_val_score(model_knn, X_train, y_train, cv=cv)
+scores_model_logreg = cross_val_score(model_logreg, X_train, y_train, cv=kfold)
+scores_model_perceptron = cross_val_score(model_perceptron, X_train, y_train, cv=kfold)
+scores_model_knn = cross_val_score(model_knn, X_train, y_train, cv=kfold)
 
 # On affiche les scores moyens au bout de 5 cross validation
 print("Score du modèle Logistic Regression:", np.mean(scores_model_logreg, axis=0))
@@ -130,8 +139,8 @@ print("\n")
 
 # Maintenant, on évalue les modèles sur l'ensemble des tests puis on les affiche
 print("Précision de Logistic Regression:", model_logreg.score(X_test, y_test))
-print("Précision de Perceptron:", model_perceptron.score(X_test, y_test))
-print("Précision de KNN:", model_knn.score(X_test, y_test))
+# print("Précision de Perceptron:", model_perceptron.score(X_test, y_test))
+# print("Précision de KNN:", model_knn.score(X_test, y_test))
 
 # On fait des prédictions sur le jeu de test sur chaque modèle
 y_pred_logreg = model_logreg.predict(X_test)
@@ -142,29 +151,29 @@ print("\n")
 
 # On calcule l'accuracy score de chaque modèle
 print("Score de prédictions correctes (Logistic Regression):", accuracy_score(y_test, y_pred_logreg))
-print("Score de prédictions correctes (Perceptron):", accuracy_score(y_test, y_pred_perceptron))
-print("Score de prédictions correctes (KNN):", accuracy_score(y_test, y_pred_knn))
+# print("Score de prédictions correctes (Perceptron):", accuracy_score(y_test, y_pred_perceptron))
+# print("Score de prédictions correctes (KNN):", accuracy_score(y_test, y_pred_knn))
 
 print("\n")
 
 # On calcule la matrice de confusion de chaque modèle
 print("Matrice de confusion (Logistic Regression):\n", confusion_matrix(y_test, y_pred_logreg))
-print("Matrice de confusion (Perceptron):\n", confusion_matrix(y_test, y_pred_perceptron))
-print("Matrice de confusion (KNN):\n", confusion_matrix(y_test, y_pred_knn))
+# print("Matrice de confusion (Perceptron):\n", confusion_matrix(y_test, y_pred_perceptron))
+# print("Matrice de confusion (KNN):\n", confusion_matrix(y_test, y_pred_knn))
 
 print("\n")
 
 # On calcule le score de précision de chaque modèle
 print("Score de précision (Logistic Regression):", precision_score(y_test, y_pred_logreg))
-print("Score de précision (Perceptron):", precision_score(y_test, y_pred_perceptron))
-print("Score de précision (KNN):", precision_score(y_test, y_pred_knn))
+# print("Score de précision (Perceptron):", precision_score(y_test, y_pred_perceptron))
+# print("Score de précision (KNN):", precision_score(y_test, y_pred_knn))
 
 print("\n")
 
 # On calcule le recall score de chaque modèle
 print("Recall score (Logistic Regression):", recall_score(y_test, y_pred_logreg))
-print("Recall score (Perceptron):", recall_score(y_test, y_pred_perceptron))
-print("Recal score (KNN):", recall_score(y_test, y_pred_knn))
+# print("Recall score (Perceptron):", recall_score(y_test, y_pred_perceptron))
+# print("Recal score (KNN):", recall_score(y_test, y_pred_knn))
 
 print("\n")
 
@@ -173,15 +182,22 @@ print("\n")
 # Il donne une mesure équilibrée des résultats en tenant compte des faux positifs et des faux négatifs.
 #
 print("F1 Score (Logistic Regression):", f1_score(y_test, y_pred_logreg))
-print("F1 Score (Perceptron):", f1_score(y_test, y_pred_perceptron))
-print("F1 Score (KNN):", f1_score(y_test, y_pred_knn))
+
+# print("F1 Score (Perceptron):", f1_score(y_test, y_pred_perceptron))
+# print("F1 Score (KNN):", f1_score(y_test, y_pred_knn))
 
 # Sauvegarde des meilleurs modèles d'entraînements à l'aide de pickle
+
+# On enregistre le modèle LogisticRegression
 pickle.dump(model_logreg, open('model_logreg.pkl', 'wb'))
-pickle.dump(model_perceptron, open('model_perceptron.pkl', 'wb'))
-pickle.dump(model_knn, open('model_knn.pkl', 'wb'))
+
+# pickle.dump(model_perceptron, open('model_perceptron.pkl', 'wb'))
+# pickle.dump(model_knn, open('model_knn.pkl', 'wb'))
 
 # On charge les meilleurs modèles d'entraînements à l'aide de pickle
+
+# On charge le modèle LogisticRegression
 pickle.load(open('model_logreg.pkl', 'rb'))
-pickle.load(open('model_perceptron.pkl', 'rb'))
-pickle.load(open('model_knn.pkl', 'rb'))
+
+# pickle.load(open('model_perceptron.pkl', 'rb'))
+# pickle.load(open('model_knn.pkl', 'rb'))
