@@ -189,7 +189,7 @@ print("F1 Score (Logistic Regression):", f1_score(y_test, y_pred_logreg))
 # Sauvegarde des meilleurs modèles d'entraînements à l'aide de pickle
 
 # On enregistre le modèle LogisticRegression
-pickle.dump(model_logreg, open('model_logreg.pkl', 'wb'))
+pickle.dump(model_logreg, open('models/model_logreg.pkl', 'wb'))
 
 # pickle.dump(model_perceptron, open('model_perceptron.pkl', 'wb'))
 # pickle.dump(model_knn, open('model_knn.pkl', 'wb'))
@@ -197,7 +197,7 @@ pickle.dump(model_logreg, open('model_logreg.pkl', 'wb'))
 # On charge les meilleurs modèles d'entraînements à l'aide de pickle
 
 # On charge le modèle LogisticRegression
-pickle.load(open('model_logreg.pkl', 'rb'))
+pickle.load(open('models/model_logreg.pkl', 'rb'))
 
 # pickle.load(open('model_perceptron.pkl', 'rb'))
 # pickle.load(open('model_knn.pkl', 'rb'))
